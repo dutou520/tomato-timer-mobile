@@ -3,6 +3,9 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
@@ -17,6 +20,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.PomodoroApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,6 +31,10 @@
         <service
             android:name=".service.TimerService"
             android:foregroundServiceType="dataSync"
+            android:exported="false" />
+
+        <receiver
+            android:name=".service.TaskReminderReceiver"
             android:exported="false" />
 
     </application>

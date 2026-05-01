@@ -54,12 +54,12 @@ fun TasksScreen(
         AddTaskDialog(
             editingTask = uiState.editingTask,
             onDismiss = { viewModel.dismissDialog() },
-            onSave = { title, description, hasReminder, reminderMinutes ->
+            onSave = { title, description, hasReminder, reminderHour, reminderMinute ->
                 val editing = uiState.editingTask
                 if (editing != null) {
-                    viewModel.updateTask(editing.id, title, description, hasReminder, reminderMinutes)
+                    viewModel.updateTask(editing.id, title, description, hasReminder, reminderHour, reminderMinute)
                 } else {
-                    viewModel.addTask(title, description, hasReminder, reminderMinutes)
+                    viewModel.addTask(title, description, hasReminder, reminderHour, reminderMinute)
                 }
             }
         )

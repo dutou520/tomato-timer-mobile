@@ -22,4 +22,6 @@ class TaskRepository(private val taskDao: TaskDao) {
         taskDao.toggleCompletion(id, isCompleted)
 
     suspend fun deleteCompletedTasks() = taskDao.deleteCompletedTasks()
+
+    suspend fun resetAllTasks() = taskDao.resetAllTasks()
 }

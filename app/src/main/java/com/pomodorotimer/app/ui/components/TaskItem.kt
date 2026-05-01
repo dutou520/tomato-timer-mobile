@@ -119,7 +119,7 @@ fun TaskItem(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "提前${task.reminderMinutes}分钟提醒",
+                            text = String.format("今日 %02d:%02d 提醒", task.reminderHour, task.reminderMinute),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

@@ -11,7 +11,8 @@ data class TaskEntity(
     val description: String = "",
     val isCompleted: Boolean = false,
     val hasReminder: Boolean = false,
-    val reminderMinutes: Int = 0,
+    val reminderHour: Int = 0,
+    val reminderMinute: Int = 0,
     val createdAt: Long = System.currentTimeMillis(),
     val dueDate: Long? = null
 )

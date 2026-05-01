@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.AlertDialog
@@ -20,18 +21,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.pomodorotimer.app.data.db.TaskEntity
 
@@ -39,12 +39,13 @@ import com.pomodorotimer.app.data.db.TaskEntity
 fun AddTaskDialog(
     editingTask: TaskEntity?,
     onDismiss: () -> Unit,
-    onSave: (title: String, description: String, hasReminder: Boolean, reminderMinutes: Int) -> Unit
+    onSave: (title: String, description: String, hasReminder: Boolean, reminderHour: Int, reminderMinute: Int) -> Unit
 ) {
     var title by remember { mutableStateOf(editingTask?.title ?: "") }
     var description by remember { mutableStateOf(editingTask?.description ?: "") }
     var hasReminder by remember { mutableStateOf(editingTask?.hasReminder ?: false) }
-    var reminderMinutes by remember { mutableFloatStateOf((editingTask?.reminderMinutes ?: 5).toFloat()) }
+    var reminderHour by remember { mutableIntStateOf(editingTask?.reminderHour ?: 8) }
+    var reminderMinute by remember { mutableIntStateOf(editingTask?.reminderMinute ?: 0) }
 
     val isEditing = editingTask != null
     val isValid = title.isNotBlank()
@@ -125,29 +126,63 @@ fun AddTaskDialog(
 
                 if (hasReminder) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "提前 ${reminderMinutes.toInt()} 分钟提醒",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Slider(
-                        value = reminderMinutes,
-                        onValueChange = { reminderMinutes = it },
-                        valueRange = 1f..60f,
-                        steps = 58,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = SliderDefaults.colors(
-                            thumbColor = MaterialTheme.colorScheme.primary,
-                            activeTrackColor = MaterialTheme.colorScheme.primary,
-                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "在今日",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-                    )
+                        OutlinedTextField(
+                            value = if (reminderHour == -1) "" else reminderHour.toString(),
+                            onValueChange = {
+                                val v = it.filter { c -> c.isDigit() }.take(2).toIntOrNull() ?: -1
+                                if (v in 0..23 || it.isEmpty()) reminderHour = if (it.isEmpty()) -1 else v
+                            },
+                            modifier = Modifier.width(56.dp),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            placeholder = { Text("时") },
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "时",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        OutlinedTextField(
+                            value = if (reminderMinute == -1) "" else reminderMinute.toString(),
+                            onValueChange = {
+                                val v = it.filter { c -> c.isDigit() }.take(2).toIntOrNull() ?: -1
+                                if (v in 0..59 || it.isEmpty()) reminderMinute = if (it.isEmpty()) -1 else v
+                            },
+                            modifier = Modifier.width(56.dp),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            placeholder = { Text("分") },
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "分 提醒",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
         },
         confirmButton = {
             Button(
-                onClick = { onSave(title, description, hasReminder, reminderMinutes.toInt()) },
+                onClick = {
+                    val safeHour = if (reminderHour in 0..23) reminderHour else 0
+                    val safeMinute = if (reminderMinute in 0..59) reminderMinute else 0
+                    onSave(title, description, hasReminder, safeHour, safeMinute)
+                },
                 enabled = isValid,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary

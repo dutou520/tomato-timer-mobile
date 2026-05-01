@@ -1,9 +1,12 @@
 package com.pomodorotimer.app.ui.screens.timer
 
+import android.Manifest
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.net.Uri
@@ -12,9 +15,11 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.pomodorotimer.app.R
+import com.pomodorotimer.app.service.TimerService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -70,16 +75,19 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
 
         _uiState.value = _uiState.value.copy(state = TimerState.RUNNING)
         startCountdown()
+        updateForegroundService()
     }
 
     fun pauseTimer() {
         timerJob?.cancel()
         _uiState.value = _uiState.value.copy(state = TimerState.PAUSED)
+        updateForegroundService()
     }
 
     fun resumeTimer() {
         _uiState.value = _uiState.value.copy(state = TimerState.RUNNING)
         startCountdown()
+        updateForegroundService()
     }
 
     private fun startCountdown() {
@@ -113,6 +121,7 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
         val phase = _uiState.value.phase
         resetTimerForPhase(phase)
         _uiState.value = _uiState.value.copy(state = TimerState.IDLE)
+        updateForegroundService()
     }
 
     fun switchPhase(phase: TimerPhase) {
@@ -122,6 +131,7 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
             phase = phase,
             state = TimerState.IDLE
         )
+        updateForegroundService()
     }
 
     fun skipToNextPhase() {
@@ -152,6 +162,7 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
             state = TimerState.IDLE,
             completedPomodoros = nextCompleted
         )
+        updateForegroundService()
     }
 
     private fun onTimerComplete() {
@@ -169,11 +180,17 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
             }
             _uiState.value = _uiState.value.copy(
                 completedPomodoros = completed,
-                phase = nextPhase
+                phase = nextPhase,
+                state = TimerState.FINISHED
             )
         } else {
-            _uiState.value = _uiState.value.copy(phase = TimerPhase.FOCUS)
+            _uiState.value = _uiState.value.copy(
+                phase = TimerPhase.FOCUS,
+                state = TimerState.FINISHED
+            )
         }
+
+        startTimer()
     }
 
     private fun resetTimerForPhase(phase: TimerPhase) {
@@ -268,8 +285,31 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private fun updateForegroundService() {
+        val context = getApplication<Application>()
+        val state = _uiState.value
+        val intent = Intent(context, TimerService::class.java)
+
+        if (state.phase == TimerPhase.FOCUS &&
+            state.state != TimerState.IDLE &&
+            state.state != TimerState.FINISHED
+        ) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED
+                ) return
+            }
+            context.startForegroundService(intent)
+        } else {
+            context.stopService(intent)
+        }
+    }
+
     override fun onCleared() {
         timerJob?.cancel()
+        getApplication<Application>().stopService(
+            Intent(getApplication(), TimerService::class.java)
+        )
         super.onCleared()
     }
 }
