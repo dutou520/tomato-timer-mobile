@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="morandi_brown_primary">#8B7355</color>
+    <color name="morandi_brown_secondary">#A0896C</color>
+    <color name="morandi_brown_tertiary">#C4A882</color>
+    <color name="morandi_bg">#F5F0EB</color>
+    <color name="morandi_surface">#EDE6DD</color>
+    <color name="morandi_on_primary">#FFFFFF</color>
+</resources>

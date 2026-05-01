@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Tomato icon for pomodoro -->
+    <group
+        android:translateX="27"
+        android:translateY="27">
+        <!-- Tomato body -->
+        <path
+            android:fillColor="#8B7355"
+            android:pathData="M27,10C27,4.48 21.52,0 16,0C10.48,0 5,4.48 5,10C5,15.52 10.48,21 16,21C21.52,21 27,15.52 27,10Z" />
+        <!-- Leaf -->
+        <path
+            android:fillColor="#A0896C"
+            android:pathData="M16,0C16,0 20,-3 22,-1C24,1 16,3 16,0Z" />
+    </group>
+</vector>
